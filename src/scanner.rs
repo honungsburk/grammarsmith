@@ -75,7 +75,7 @@ impl<'a> Scanner<'a> {
         self.it.peek()
     }
 
-    /// Conditionally consumes the next character based on what follows it.
+    /// Conditionally consumes the current character.
     ///
     /// # Arguments
     /// * `predicate` - A function that takes a char and returns a boolean
@@ -87,9 +87,40 @@ impl<'a> Scanner<'a> {
     /// ```
     /// use grammarsmith::*;
     ///
-    /// let mut scanner = Scanner::new("123abc");
-    /// scanner.consume_if_next(|c| c.is_numeric());
+    /// let mut scanner = Scanner::new("1a");
+    /// scanner.consume_if(|c| c.is_numeric());
     /// assert_eq!(scanner.slice(), "1");
+    /// ```
+    pub fn consume_if(&mut self, predicate: impl Fn(char) -> bool) -> bool {
+        if let Some(c) = self.peek() {
+            if predicate(*c) {
+                self.next();
+                return true;
+            }
+        }
+
+        false
+    }
+
+    /// Conditionally consumes the current character based on what follows it.
+    ///
+    /// # Arguments
+    /// * `predicate` - A function that takes a char and returns a boolean
+    ///
+    /// # Returns
+    /// `true` if a character was consumed, `false` otherwise
+    ///
+    /// # Example
+    /// ```
+    /// use grammarsmith::*;
+    ///
+    /// let mut scanner1 = Scanner::new("12");
+    /// scanner1.consume_if_next(|c| c.is_numeric());
+    /// assert_eq!(scanner1.slice(), "1");
+    ///
+    /// let mut scanner2 = Scanner::new("1a");
+    /// scanner2.consume_if_next(|c| c.is_numeric());
+    /// assert_eq!(scanner2.slice(), "");
     /// ```
     pub fn consume_if_next<P>(&mut self, predicate: P) -> bool
     where
@@ -157,5 +188,70 @@ impl<'a> Scanner<'a> {
     /// * `token_type` - The token to wrap with position information
     pub fn with_span<T>(&self, token_type: T) -> WithSpan<T> {
         WithSpan::new_unchecked(token_type, self.start.0, self.current.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_next() {
+        let mut scanner = Scanner::new("123🦀€é");
+        assert_eq!(scanner.slice(), "");
+        scanner.next();
+        assert_eq!(scanner.slice(), "1");
+        scanner.next();
+        assert_eq!(scanner.slice(), "12");
+        scanner.next();
+        assert_eq!(scanner.slice(), "123");
+        scanner.next();
+        assert_eq!(scanner.slice(), "123🦀");
+        scanner.next();
+        assert_eq!(scanner.slice(), "123🦀€");
+        scanner.next();
+        assert_eq!(scanner.slice(), "123🦀€é");
+    }
+
+    #[test]
+    fn test_peek() {
+        let mut scanner = Scanner::new("123🦀€é");
+        assert_eq!(scanner.peek(), Some(&'1'));
+        scanner.next();
+        assert_eq!(scanner.peek(), Some(&'2'));
+        scanner.next();
+        assert_eq!(scanner.peek(), Some(&'3'));
+        scanner.next();
+        assert_eq!(scanner.peek(), Some(&'🦀'));
+        scanner.next();
+        assert_eq!(scanner.peek(), Some(&'€'));
+        scanner.next();
+        assert_eq!(scanner.peek(), Some(&'é'));
+        scanner.next();
+        assert_eq!(scanner.peek(), None);
+    }
+
+    #[test]
+    fn test_consume_if() {
+        let mut scanner = Scanner::new("123abc");
+        assert!(scanner.consume_if(|c| c.is_numeric()));
+        assert_eq!(scanner.slice(), "1");
+        assert!(scanner.consume_if(|c| c.is_numeric()));
+        assert_eq!(scanner.slice(), "12");
+        assert!(scanner.consume_if(|c| c.is_numeric()));
+        assert_eq!(scanner.slice(), "123");
+        assert!(!scanner.consume_if(|c| c.is_numeric()));
+        assert_eq!(scanner.slice(), "123");
+    }
+
+    #[test]
+    fn test_consume_if_next() {
+        let mut scanner = Scanner::new("123abc");
+        assert!(scanner.consume_if_next(|c| c.is_numeric()));
+        assert_eq!(scanner.slice(), "1");
+        assert!(scanner.consume_if_next(|c| c.is_numeric()));
+        assert_eq!(scanner.slice(), "12");
+        assert!(!scanner.consume_if_next(|c| c.is_numeric()));
+        assert_eq!(scanner.slice(), "12");
     }
 }
