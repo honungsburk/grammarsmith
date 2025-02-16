@@ -43,7 +43,7 @@ where
     T: Token + EndOfFile,
 {
     current: usize,
-    tokens: &'a Vec<WithSpan<T>>,
+    tokens: &'a [WithSpan<T>],
     eof_token: &'a WithSpan<T>,
 }
 
@@ -56,7 +56,7 @@ where
     /// # Arguments
     /// * `tokens` - A vector of tokens with their associated spans
     /// * `eof_token` - A reference to the EOF token that will be returned when reaching the end
-    pub fn new(tokens: &'a Vec<WithSpan<T>>, eof_token: &'a WithSpan<T>) -> Self {
+    pub fn new(tokens: &'a [WithSpan<T>], eof_token: &'a WithSpan<T>) -> Self {
         Parser {
             current: 0,
             tokens: tokens,
