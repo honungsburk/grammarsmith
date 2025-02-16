@@ -1,4 +1,5 @@
-// use serde::{Deserialize, Serialize};
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 use std::ops::{Add, AddAssign, Sub, SubAssign};
 
@@ -11,7 +12,7 @@ use std::ops::{Add, AddAssign, Sub, SubAssign};
 /// assert_eq!(pos.shift('a'), BytePos(1));
 /// ```
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Hash, Default)]
-// #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct BytePos(pub usize);
 
 impl BytePos {

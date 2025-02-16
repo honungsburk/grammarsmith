@@ -1,4 +1,6 @@
 use super::BytePos;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
 
 /// A trait for getting the span of a value.
 ///
@@ -23,6 +25,7 @@ pub trait SetSpan {
 /// following the common convention for ranges in Rust. For example, a span of
 /// `start: 5, end: 10` covers the bytes/characters at positions 5, 6, 7, 8, and 9.
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Span {
     pub start: BytePos,
     pub end: BytePos,

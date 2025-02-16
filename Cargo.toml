@@ -2,6 +2,12 @@
 name = "grammarsmith"
 version = "0.1.0"
 edition = "2021"
+description = "Common helpers for handwriting writing lexers and parsers."
+repository = "https://github.com/honungsburk/grammarsmith"
+license-file = "LICENSE"
+readme = "README.md"
+keywords = ["parser", "lexer"]
+categories = ["development-tools"]
 
 [features]
 serde = ["dep:serde"]
