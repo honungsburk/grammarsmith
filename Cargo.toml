@@ -7,6 +7,7 @@ repository = "https://github.com/honungsburk/grammarsmith"
 license-file = "LICENSE"
 readme = "README.md"
 keywords = ["parser", "lexer"]
+include = ["**/*.rs", "Cargo.toml", "README.md", "LICENSE"]
 
 [features]
 serde = ["dep:serde"]
