@@ -36,6 +36,16 @@ impl<'a> Scanner<'a> {
         self.source
     }
 
+    /// Returns the start position of the current token.
+    pub fn start(&self) -> BytePos {
+        self.start
+    }
+
+    /// Returns the current position of the scanner.
+    pub fn current(&self) -> BytePos {
+        self.current
+    }
+
     /// Shifts the start position to the current position.
     ///
     /// This should be called before beginning to scan a new token to mark its
@@ -100,6 +110,24 @@ impl<'a> Scanner<'a> {
         }
 
         false
+    }
+
+    /// Returns true if the next character matches the predicate.
+    ///
+    /// # Arguments
+    /// * `predicate` - A function that takes a char and returns a boolean
+    ///
+    /// # Returns
+    /// `true` if the next character matches the predicate, `false` otherwise
+    pub fn if_next<P>(&mut self, predicate: P) -> bool
+    where
+        P: Fn(char) -> bool,
+    {
+        if let Some(c) = self.peek() {
+            predicate(*c)
+        } else {
+            false
+        }
     }
 
     /// Conditionally consumes the current character based on what follows it.
@@ -189,6 +217,14 @@ impl<'a> Scanner<'a> {
     pub fn with_span<T>(&self, token_type: T) -> WithSpan<T> {
         WithSpan::new_unchecked(token_type, self.start.0, self.current.0)
     }
+
+    /// Returns a copy of the iterator over the characters in the source text.
+    ///
+    /// # Returns
+    /// A copy of the iterator over the characters in the source text
+    pub fn iterator(&self) -> impl Iterator<Item = char> + use<'a> {
+        self.it.clone()
+    }
 }
 
 #[cfg(test)]
@@ -253,5 +289,13 @@ mod tests {
         assert_eq!(scanner.slice(), "12");
         assert!(!scanner.consume_if_next(|c| c.is_numeric()));
         assert_eq!(scanner.slice(), "12");
+    }
+
+    #[test]
+    fn test_if_next() {
+        let mut scanner = Scanner::new("123abc");
+        assert!(scanner.if_next(|c| c.is_numeric()));
+        // Does not consume the character
+        assert_eq!(scanner.slice(), "");
     }
 }
