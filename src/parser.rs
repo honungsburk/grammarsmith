@@ -42,6 +42,7 @@ pub struct Parser<'a, T>
 where
     T: Token + EndOfFile,
 {
+    check_points: Vec<usize>,
     current: usize,
     tokens: &'a [WithSpan<T>],
     eof_token: &'a WithSpan<T>,
@@ -58,9 +59,35 @@ where
     /// * `eof_token` - A reference to the EOF token that will be returned when reaching the end
     pub fn new(tokens: &'a [WithSpan<T>], eof_token: &'a WithSpan<T>) -> Self {
         Parser {
+            check_points: Vec::new(),
             current: 0,
             tokens: tokens,
             eof_token: eof_token,
+        }
+    }
+
+    /// Creates a checkpoint of the current parser state.
+    ///
+    /// This method allows you to save the current position in the token stream
+    /// for later restoration.
+    pub fn checkpoint(&mut self) {
+        self.check_points.push(self.current);
+    }
+
+    /// Unwinds the parser, dropping the last checkpoint.
+    ///
+    /// If there are no checkpoints, this method does nothing.
+    pub fn unwind(&mut self) {
+        self.check_points.pop();
+    }
+
+    /// Rewinds the parser to the last checkpoint.
+    ///
+    /// If there are no checkpoints, this method does nothing.
+    pub fn rewind(&mut self) {
+        match self.check_points.pop() {
+            Some(checkpoint) => self.current = checkpoint,
+            None => {}
         }
     }
 
